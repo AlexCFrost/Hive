@@ -1,0 +1,1 @@
+Fonts used in this design: \r\n\r\nThird party Fonts: \r\n\r\nFont: Klee One \r\nAuthor: Fontworks Inc. \r\nUrl: https://fonts.google.com/specimen/Klee+One \r\n\r\nFont: Noto Naskh Arabic \r\nAuthor: Google \r\nUrl: https://fonts.google.com/specimen/Noto+Naskh+Arabic \r\n\r\n
