@@ -11,7 +11,7 @@ const CreateCommunity = () => {
   const [description, setDescription] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Basic validation
@@ -43,7 +43,8 @@ const CreateCommunity = () => {
       setTimeout(() => navigate('/community'), 1500);
     } catch (error) {
       // Handle error
-      toast.error(error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create community';
+      toast.error(errorMessage);
     }
   };
 

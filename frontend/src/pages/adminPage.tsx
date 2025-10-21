@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,39 +14,77 @@ import {
 } from "@/components/ui/select";
 import toast, { Toaster } from 'react-hot-toast';
 
+interface Community {
+  _id: string;
+  name: string;
+  description: string;
+  admin: string[];
+  members: string[];
+  createdAt: string;
+}
+
+interface Member {
+  username: string;
+  isAdmin: boolean;
+  key: string;
+}
+
+interface JoinRequest {
+  user: string;
+  createdAt: string;
+}
+
 const AdminCommunityManager = () => {
-  const [adminCommunities, setAdminCommunities] = useState([]);
-  const [filteredCommunities, setFilteredCommunities] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedCommunity, setSelectedCommunity] = useState(null);
-  const [editDescriptionDialog, setEditDescriptionDialog] = useState(false);
-  const [newDescription, setNewDescription] = useState('');
-  const [deleteConfirmDialog, setDeleteConfirmDialog] = useState(false);
+  const [adminCommunities, setAdminCommunities] = useState<Community[]>([]);
+  const [filteredCommunities, setFilteredCommunities] = useState<Community[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
+  const [editDescriptionDialog, setEditDescriptionDialog] = useState<boolean>(false);
+  const [newDescription, setNewDescription] = useState<string>('');
+  const [deleteConfirmDialog, setDeleteConfirmDialog] = useState<boolean>(false);
   
   // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [communitiesPerPage] = useState(6);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [communitiesPerPage] = useState<number>(6);
   
   // Search and filter state
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterCriteria, setFilterCriteria] = useState('name');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [filterCriteria, setFilterCriteria] = useState<string>('name');
 
   // Member management state
-  const [memberManagementDialog, setMemberManagementDialog] = useState(false);
-  const [members, setMembers] = useState([]);
-  const [joinRequests, setJoinRequests] = useState([]);
-  const [selectedAction, setSelectedAction] = useState('members');
+  const [memberManagementDialog, setMemberManagementDialog] = useState<boolean>(false);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
+  const [selectedAction, setSelectedAction] = useState<string>('members');
 
   const navigate = useNavigate();
 
+  // Define filterCommunities first with useCallback
+  const filterCommunities = useCallback(() => {
+    if (!adminCommunities.length) return;
+    
+    let result = adminCommunities;
+
+    if (searchTerm && filterCriteria) {
+      result = result.filter(community => {
+        const value = community[filterCriteria as keyof Community];
+        return typeof value === 'string' && value.toLowerCase().includes(searchTerm.toLowerCase());
+      });
+    }
+
+    setFilteredCommunities(result);
+    setCurrentPage(1); // Reset to first page when filtering
+  }, [adminCommunities, filterCriteria, searchTerm]);
+
+  // Fetch admin communities on mount
   useEffect(() => {
     fetchAdminCommunities();
   }, []);
 
-  // Update filtered communities when search term or filter changes
+  // Update filtered communities when dependencies change
   useEffect(() => {
     filterCommunities();
-  }, [searchTerm, filterCriteria, adminCommunities]);
+  }, [filterCommunities]);
 
   const fetchAdminCommunities = async () => {
     try {
@@ -67,55 +105,44 @@ const AdminCommunityManager = () => {
       
       // Filter communities where the current user is an admin
       const username = localStorage.getItem('username');
-      const adminCommunities = communities.filter(community => 
-        community.admin.includes(username)
+      const adminCommunities = communities.filter((community: Community) => 
+        community.admin.includes(username || '')
       );
 
       setAdminCommunities(adminCommunities);
       setFilteredCommunities(adminCommunities);
       setLoading(false);
     } catch (error) {
-      toast.error(error.message || 'An unexpected error occurred');
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      toast.error(errorMessage);
       setLoading(false);
     }
-  };
-
-  const filterCommunities = () => {
-    let result = adminCommunities;
-
-    if (searchTerm) {
-      result = result.filter(community => 
-        community[filterCriteria]
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase())
-      );
-    }
-
-    setFilteredCommunities(result);
-    setCurrentPage(1); // Reset to first page when filtering
   };
 
   // Pagination logic
   const indexOfLastCommunity = currentPage * communitiesPerPage;
   const indexOfFirstCommunity = indexOfLastCommunity - communitiesPerPage;
   const currentCommunities = filteredCommunities.slice(
-    indexOfFirstCommunity, 
+    indexOfFirstCommunity,
     indexOfLastCommunity
   );
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  // Calculate page numbers
+  const pageNumbers = [];
+  for (let i = 1; i <= Math.ceil(filteredCommunities.length / communitiesPerPage); i++) {
+    pageNumbers.push(i);
+  }
 
-  const handleManageCommunity = (community) => {
-    navigate(`/admin/community/${community._id}`);
-  };
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
-  const handleEditDescription = async () => {
+  const handleUpdateDescription = async () => {
+    if (!selectedCommunity) return;
+    
     try {
       const token = localStorage.getItem('token');
-      
       const response = await fetch(`http://localhost:3000/bee/community/${selectedCommunity._id}/description`, {
         method: 'PUT',
-        headers: { 
+        headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
@@ -123,278 +150,287 @@ const AdminCommunityManager = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update description. Please try again.');
+        throw new Error('Failed to update description');
       }
 
-      // Update local state
-      const updatedCommunities = adminCommunities.map(community => 
-        community._id === selectedCommunity._id 
-          ? { ...community, description: newDescription } 
+      // Update the community in the state
+      const updatedCommunities = adminCommunities.map(community =>
+        community._id === selectedCommunity._id
+          ? { ...community, description: newDescription }
           : community
       );
 
       setAdminCommunities(updatedCommunities);
-      
-      toast.success('Description updated successfully');
+      setFilteredCommunities(updatedCommunities);
+
+      toast.success('Community description updated successfully');
       setEditDescriptionDialog(false);
     } catch (error) {
-      toast.error(error.message || 'Failed to update description');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update description';
+      toast.error(errorMessage);
     }
   };
 
   const handleDeleteCommunity = async () => {
+    if (!selectedCommunity) return;
+    
     try {
       const token = localStorage.getItem('token');
-      
       const response = await fetch(`http://localhost:3000/bee/community/${selectedCommunity._id}/delete`, {
         method: 'DELETE',
-        headers: { 
+        headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete community. Please try again.');
+        throw new Error('Failed to delete community');
       }
 
-      // Remove from local state
+      // Remove the community from state
       const updatedCommunities = adminCommunities.filter(
         community => community._id !== selectedCommunity._id
       );
 
       setAdminCommunities(updatedCommunities);
-      
-      toast.success('Community deleted successfully');
+      setFilteredCommunities(updatedCommunities);
       setDeleteConfirmDialog(false);
+
+      toast.success('Community deleted successfully');
     } catch (error) {
-      toast.error(error.message || 'Failed to delete community');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete community';
+      toast.error(errorMessage);
     }
   };
 
-  const openEditDescriptionDialog = (community) => {
+  const openEditDescriptionDialog = (community: Community) => {
     setSelectedCommunity(community);
-    setNewDescription(community.description);
+    setNewDescription(community.description || '');
     setEditDescriptionDialog(true);
   };
 
-  const openDeleteConfirmDialog = (community) => {
+  const openDeleteConfirmDialog = (community: Community) => {
     setSelectedCommunity(community);
     setDeleteConfirmDialog(true);
   };
 
-
-
-  const openMemberManagementDialog = async (community) => {
+  // For member management
+  const openMemberManagementDialog = async (community: Community) => {
     setSelectedCommunity(community);
     setMemberManagementDialog(true);
+    await fetchCommunityMembers(community._id);
+  };
+
+  const fetchCommunityMembers = async (communityId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Fetch members
+      const membersResponse = await fetch(`http://localhost:3000/bee/community/${communityId}/members`, {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!membersResponse.ok) {
+        throw new Error('Failed to fetch community members');
+      }
+
+      const membersData = await membersResponse.json();
+      setMembers(membersData.map((username: string, index: number) => ({
+        username,
+        isAdmin: false, // You might need to fetch admin status separately
+        key: `member-${index}`
+      })));
+
+      // Fetch join requests
+      const requestsResponse = await fetch(`http://localhost:3000/bee/community/${communityId}/requests`, {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!requestsResponse.ok) {
+        throw new Error('Failed to fetch join requests');
+      }
+
+      const requestsData = await requestsResponse.json();
+      setJoinRequests(requestsData);
+      
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load community details';
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleMemberAction = async (username: string, action: string) => {
+    if (!selectedCommunity) return;
     
     try {
       const token = localStorage.getItem('token');
       
-      const membersResponse = await fetch(`http://localhost:3000/bee/community/${community._id}/members`, {
-        method: 'GET',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-  
-      if (!membersResponse.ok) {
-        throw new Error('Failed to fetch members');
-      }
-  
-      const membersData = await membersResponse.json();
-      
-      // Directly set members with the backend-processed data
-      setMembers(membersData);
-  
-      // Fetch join requests
-      const requestsResponse = await fetch(`http://localhost:3000/bee/community/${community._id}/requests`, {
-        method: 'GET',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-  
-      if (!requestsResponse.ok) {
-        throw new Error('Failed to fetch join requests');
-      }
-  
-      const requestsData = await requestsResponse.json();
-      setJoinRequests(requestsData);
-  
-    } catch (error) {
-      console.error('Error in Member Management:', error);
-      toast.error(error.message || 'Failed to load community details');
-      setMembers([]);
-      setJoinRequests([]);
-    }
-  };
-  
-  const handleMemberAction = async (username, action) => {
-    try {
-      const token = localStorage.getItem('token');
+      let method, body;
       
       if (action === 'remove') {
-        // Log the details before removal
-        console.log('Attempting to remove member:', username);
-        console.log('Current members:', members);
+        method = 'DELETE';
+        body = JSON.stringify({ username });
         
         const response = await fetch(`http://localhost:3000/bee/community/${selectedCommunity._id}/members`, {
-          method: 'DELETE',
+          method,
           headers: { 
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ username })
+          body
         });
 
         if (!response.ok) {
           throw new Error('Failed to remove member');
         }
 
-        // Log the filtering process
-        const updatedMembers = members.filter(member => {
-          console.log('Member:', member, 'Username to match:', username);
-          return member.username !== username;
-        });
-
-        console.log('Updated members after filtering:', updatedMembers);
+        // Update members list in state
+        const updatedMembers = members.filter(member => 
+          member.username !== username
+        );
         
         setMembers(updatedMembers);
-        toast.success('Member removed successfully');
+        toast.success(`Member ${username} removed successfully`);
       }
+      
     } catch (error) {
-      toast.error(error.message || 'Failed to perform action');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to perform action';
+      toast.error(errorMessage);
     }
   };
 
-  const handleJoinRequestAction = async (username, approved) => {
+  const handleJoinRequestAction = async (username: string, approved: boolean) => {
+    if (!selectedCommunity) return;
+    
     try {
       const token = localStorage.getItem('token');
-      
       const response = await fetch(`http://localhost:3000/bee/community/${selectedCommunity._id}/requests`, {
         method: 'PUT',
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ username, approved })
+        body: JSON.stringify({ 
+          username,
+          approved
+        })
       });
 
       if (!response.ok) {
-        throw new Error('Failed to process join request');
+        throw new Error(`Failed to ${approved ? 'approve' : 'reject'} request`);
       }
 
-      // Update local state
+      // Update join requests list in state
       setJoinRequests(joinRequests.filter(request => request.user !== username));
       
+      // If approved, add to members list
       if (approved) {
-        // Optionally fetch updated members if needed
-        toast.success('Join request approved');
-      } else {
-        toast.success('Join request declined');
+        setMembers([...members, { 
+          username, 
+          isAdmin: false,
+          key: `member-${members.length}`
+        }]);
       }
+
+      toast.success(`Request ${approved ? 'approved' : 'rejected'} successfully`);
     } catch (error) {
-      toast.error(error.message || 'Failed to perform action');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to perform action';
+      toast.error(errorMessage);
     }
   };
-
-  // Pagination component
-  const Pagination = () => {
-    const pageNumbers = [];
-    for (let i = 1; i <= Math.ceil(filteredCommunities.length / communitiesPerPage); i++) {
-      pageNumbers.push(i);
-    }
-
-    return (
-      <div className="flex justify-center items-center space-x-2 mt-4">
-        {pageNumbers.map(number => (
-          <Button
-            key={number}
-            onClick={() => paginate(number)}
-            variant={currentPage === number ? 'default' : 'outline'}
-            size="sm"
-          >
-            {number}
-          </Button>
-        ))}
-      </div>
-    );
-  };
-
-  if (loading) {
-    return <div className="p-8 text-white text-lg">Loading communities...</div>;
-  }
 
   return (
-    <div className="flex flex-col w-full items-center">
+    <div className="flex flex-col w-full">
       <Toaster position="top-right" />
+      <h1 className="text-3xl font-bold mb-6 text-white text-center">Community Management</h1>
       
-      <h1 className="text-3xl font-bold mb-8 text-center text-white">Communities You Manage</h1>
-
-      {/* Search and Filter Section */}
-      <div className="flex flex-col md:flex-row gap-4 mb-8 w-full max-w-4xl">
-        <Input 
-          placeholder="Search communities..." 
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="bg-gray-900 border-gray-700 flex-grow text-white"
-        />
-        <Select 
-          value={filterCriteria} 
-          onValueChange={setFilterCriteria}
+      {/* Search and Filter Controls */}
+      <div className="mb-8 flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <Select 
+            value={filterCriteria}
+            onValueChange={setFilterCriteria}
+          >
+            <SelectTrigger className="w-[120px] bg-black border-gray-700 text-white">
+              <SelectValue placeholder="Filter by" />
+            </SelectTrigger>
+            <SelectContent className="bg-gray-900 border-gray-700 text-white">
+              <SelectItem value="name">Name</SelectItem>
+              <SelectItem value="description">Description</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Input
+            type="text"
+            placeholder="Search communities..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="bg-black border-gray-700 text-white max-w-xs"
+          />
+        </div>
+        
+        <Button 
+          onClick={() => navigate('/createCommunity')}
+          className="bg-red-600 hover:bg-red-700 text-white"
         >
-          <SelectTrigger className="w-full md:w-[180px] bg-gray-900 border-gray-700 text-white">
-            <SelectValue placeholder="Filter by" />
-          </SelectTrigger>
-          <SelectContent className="bg-gray-900 border-gray-700 text-white">
-            <SelectItem value="name">Name</SelectItem>
-            <SelectItem value="description">Description</SelectItem>
-          </SelectContent>
-        </Select>
+          Create New Community
+        </Button>
       </div>
 
-      {filteredCommunities.length === 0 ? (
-        <div className="bg-black border border-gray-800 p-8 rounded-lg text-center max-w-4xl mx-auto w-full">
-          <p className="text-gray-300 text-lg">
-            {adminCommunities.length === 0 
-              ? "You are not an admin of any communities" 
-              : "No communities match your search criteria"}
-          </p>
+      {loading ? (
+        <div className="text-center p-8 text-white">
+          Loading communities...
+        </div>
+      ) : adminCommunities.length === 0 ? (
+        <div className="text-center bg-black border border-gray-800 rounded-lg p-8 max-w-2xl mx-auto">
+          <h2 className="text-xl font-semibold mb-4 text-white">No Communities Found</h2>
+          <p className="text-gray-300 mb-6">You haven't created any communities yet.</p>
+          <Button 
+            onClick={() => navigate('/createCommunity')}
+            className="bg-red-600 hover:bg-red-700 text-white"
+          >
+            Create Your First Community
+          </Button>
         </div>
       ) : (
         <>
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto w-full">
-            {currentCommunities.map(community => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto w-full">
+            {currentCommunities.map((community) => (
               <Card key={community._id} className="bg-black border border-gray-800 text-white h-full hover:bg-gray-900 transition">
-                <CardHeader className="border-b border-gray-800 pb-4">
+                <CardHeader className="border-b border-gray-800">
                   <CardTitle className="text-white text-xl">{community.name}</CardTitle>
                 </CardHeader>
-                <CardContent className="pt-6 p-6 flex flex-col h-full">
-                  <p className="text-base text-gray-300 mb-6 flex-grow min-h-[80px]">
+                <CardContent className="pt-6 flex flex-col h-full">
+                  <p className="text-gray-300 mb-6 flex-grow">
                     {community.description || 'No description'}
                   </p>
-                  <div className="flex flex-col space-y-3 mt-auto">
+                  
+                  <div className="space-y-4 mt-auto">
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button 
+                        onClick={() => openEditDescriptionDialog(community)}
+                        className="bg-gray-800 hover:bg-gray-700 text-white"
+                      >
+                        Edit Description
+                      </Button>
+                      <Button 
+                        onClick={() => openMemberManagementDialog(community)}
+                        className="bg-gray-800 hover:bg-gray-700 text-white"
+                      >
+                        Manage Members
+                      </Button>
+                    </div>
                     <Button 
-                      onClick={() => openMemberManagementDialog(community)}
-                      className="bg-gray-800 hover:bg-gray-700 text-white py-2.5"
-                    >
-                      Manage Members
-                    </Button>
-                    <Button 
-                      variant="secondary"
-                      onClick={() => openEditDescriptionDialog(community)}
-                      className="bg-gray-900 hover:bg-gray-800 text-white border border-gray-700 py-2.5"
-                    >
-                      Edit Description
-                    </Button>
-                    <Button 
-                      variant="destructive"
                       onClick={() => openDeleteConfirmDialog(community)}
-                      className="bg-red-600 hover:bg-red-700 text-white py-2.5"
+                      variant="destructive"
+                      className="w-full"
                     >
                       Delete Community
                     </Button>
@@ -403,203 +439,199 @@ const AdminCommunityManager = () => {
               </Card>
             ))}
           </div>
-          
+
           {/* Pagination */}
-          <div className="mt-8 flex justify-center w-full">
-            <Pagination />
-          </div>
+          {pageNumbers.length > 1 && (
+            <div className="flex justify-center mt-8">
+              <ul className="flex space-x-2">
+                {pageNumbers.map(number => (
+                  <li key={number}>
+                    <Button
+                      onClick={() => paginate(number)}
+                      variant={currentPage === number ? "default" : "outline"}
+                      className={`${currentPage === number ? 'bg-red-600' : 'bg-gray-900 text-white border-gray-700'}`}
+                    >
+                      {number}
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </>
       )}
 
       {/* Edit Description Dialog */}
-      <Dialog 
-        open={editDescriptionDialog} 
-        onOpenChange={setEditDescriptionDialog}
-      >
+      <Dialog open={editDescriptionDialog} onOpenChange={setEditDescriptionDialog}>
         <DialogContent className="bg-black border border-gray-800 text-white">
           <DialogHeader>
-            <DialogTitle className="text-white">Edit Community Description</DialogTitle>
-            <DialogDescription className="text-gray-400">
+            <DialogTitle className="text-white">
               Update the description for {selectedCommunity?.name}
-            </DialogDescription>
+            </DialogTitle>
           </DialogHeader>
-          <Textarea
-            value={newDescription}
-            onChange={(e) => setNewDescription(e.target.value)}
-            placeholder="Enter new description"
-            className="bg-gray-900 border-gray-800 text-white"
-          />
+          
+          <div className="py-4">
+            <Textarea
+              value={newDescription}
+              onChange={(e) => setNewDescription(e.target.value)}
+              className="bg-gray-900 border-gray-700 text-white"
+              placeholder="Enter new description"
+              rows={5}
+            />
+          </div>
+          
           <DialogFooter>
-            <Button 
-              variant="secondary" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => setEditDescriptionDialog(false)}
-              className="bg-gray-800 hover:bg-gray-700 text-white"
+              className="bg-gray-800 text-white border-gray-700 hover:bg-gray-700"
             >
               Cancel
             </Button>
-            <Button 
-              onClick={handleEditDescription}
+            <Button
+              type="button"
+              onClick={handleUpdateDescription}
               className="bg-red-600 hover:bg-red-700 text-white"
             >
-              Save Changes
+              Update
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirm Dialog */}
-      <Dialog 
-        open={deleteConfirmDialog} 
-        onOpenChange={setDeleteConfirmDialog}
-      >
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirmDialog} onOpenChange={setDeleteConfirmDialog}>
         <DialogContent className="bg-black border border-gray-800 text-white">
           <DialogHeader>
-            <DialogTitle className="text-white">Delete Community</DialogTitle>
+            <DialogTitle className="text-white">Confirm Deletion</DialogTitle>
             <DialogDescription className="text-gray-400">
-              Are you absolutely sure you want to delete {selectedCommunity?.name}? 
-              This action cannot be undone and will permanently remove:
-              <ul className="list-disc pl-5 mt-2 text-gray-300">
-                <li>All community members</li>
-                <li>All posts and discussions</li>
-                <li>Community settings</li>
-              </ul>
+              Are you absolutely sure you want to delete {selectedCommunity?.name}?
+              <br />This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
+          
           <DialogFooter>
-            <Button 
-              variant="secondary" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => setDeleteConfirmDialog(false)}
-              className="bg-gray-800 hover:bg-gray-700 text-white"
+              className="bg-gray-800 text-white border-gray-700 hover:bg-gray-700"
             >
               Cancel
             </Button>
-            <Button 
-              variant="destructive"
+            <Button
+              type="button"
               onClick={handleDeleteCommunity}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              variant="destructive"
             >
-              I Understand, Delete Community
+              Delete
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Member Management Dialog */}
-      <Dialog 
-        open={memberManagementDialog} 
-        onOpenChange={setMemberManagementDialog}
-      >
-        <DialogContent className="max-w-2xl bg-black border border-gray-800 text-white">
+      <Dialog open={memberManagementDialog} onOpenChange={setMemberManagementDialog}>
+        <DialogContent className="bg-black border border-gray-800 text-white max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-white">Manage {selectedCommunity?.name} Community</DialogTitle>
-            <DialogDescription className="text-gray-400">
-              Manage members and join requests
-            </DialogDescription>
           </DialogHeader>
-
-          {/* Action Selector */}
-          <div className="flex space-x-2 mb-6">
-            <Button 
-              variant={selectedAction === 'members' ? 'default' : 'outline'}
-              onClick={() => setSelectedAction('members')}
-              className={selectedAction === 'members' 
-                ? "bg-red-600 hover:bg-red-700 text-white" 
-                : "bg-gray-900 border-gray-700 text-gray-300 hover:text-white"}
-            >
-              Members
-            </Button>
-            <Button 
-              variant={selectedAction === 'requests' ? 'default' : 'outline'}
-              onClick={() => setSelectedAction('requests')}
-              className={selectedAction === 'requests' 
-                ? "bg-red-600 hover:bg-red-700 text-white" 
-                : "bg-gray-900 border-gray-700 text-gray-300 hover:text-white"}
-            >
-              Join Requests
-            </Button>
-          </div>
-
-          {/* Members Section */}
-          {selectedAction === 'members' && (
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-white">Community Members</h3>
-              {members.length === 0 ? (
-                <div className="bg-gray-900 p-4 rounded-lg border border-gray-800 text-center">
-                  <p className="text-gray-400">No members in this community</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {members.map((member) => (
-                    <div 
-                      key={member.key}
-                      className="flex justify-between items-center p-3 rounded-lg bg-gray-900 border border-gray-800"
-                    >
-                      <span className="font-medium text-white">{member.username}</span>
-                      {member.isAdmin ? (
-                        <span className="text-sm text-gray-400 bg-gray-800 px-2 py-1 rounded">Admin</span>
-                      ) : (
-                        <Button 
-                          variant="destructive" 
-                          size="sm"
-                          onClick={() => handleMemberAction(member.username, 'remove')}
-                          className="bg-red-600 hover:bg-red-700 text-white"
-                        >
-                          Remove
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+          
+          <div className="py-4">
+            {/* Tab Navigation */}
+            <div className="flex mb-4 border-b border-gray-800">
+              <button
+                className={`px-4 py-2 ${selectedAction === 'members' ? 'text-red-500 border-b-2 border-red-500' : 'text-gray-400'}`}
+                onClick={() => setSelectedAction('members')}
+              >
+                Members
+              </button>
+              <button
+                className={`px-4 py-2 ${selectedAction === 'joinRequests' ? 'text-red-500 border-b-2 border-red-500' : 'text-gray-400'}`}
+                onClick={() => setSelectedAction('joinRequests')}
+              >
+                Join Requests
+              </button>
             </div>
-          )}
-
-          {/* Join Requests Section */}
-          {selectedAction === 'requests' && (
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-white">Join Requests</h3>
-              {joinRequests.length === 0 ? (
-                <div className="bg-gray-900 p-4 rounded-lg border border-gray-800 text-center">
-                  <p className="text-gray-400">No pending join requests</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {joinRequests.map(request => (
-                    <div 
-                      key={request.user} 
-                      className="flex justify-between items-center p-3 rounded-lg bg-gray-900 border border-gray-800"
-                    >
-                      <span className="text-white">{request.user}</span>
-                      <div className="space-x-2">
-                        <Button 
-                          variant="default" 
-                          size="sm"
-                          onClick={() => handleJoinRequestAction(request.user, true)}
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                        >
-                          Approve
-                        </Button>
-                        <Button 
-                          variant="destructive" 
-                          size="sm"
-                          onClick={() => handleJoinRequestAction(request.user, false)}
-                          className="bg-red-600 hover:bg-red-700 text-white"
-                        >
-                          Decline
-                        </Button>
+            
+            {/* Members Tab */}
+            {selectedAction === 'members' && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-white">Members</h3>
+                
+                {members.length === 0 ? (
+                  <p className="text-gray-400">No members in this community.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {members.map(member => (
+                      <div 
+                        key={member.key}
+                        className="flex items-center justify-between p-3 bg-gray-900 rounded-md"
+                      >
+                        <span className="font-medium text-white">{member.username}</span>
+                        {member.isAdmin ? (
+                          <span className="text-xs bg-red-900 text-red-300 px-2 py-1 rounded">Admin</span>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleMemberAction(member.username, 'remove')}
+                          >
+                            Remove
+                          </Button>
+                        )}
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Join Requests Tab */}
+            {selectedAction === 'joinRequests' && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-white">Join Requests</h3>
+                
+                {joinRequests.length === 0 ? (
+                  <p className="text-gray-400">No pending join requests.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {joinRequests.map(request => (
+                      <div 
+                        key={request.user}
+                        className="flex items-center justify-between p-3 bg-gray-900 rounded-md"
+                      >
+                        <span className="text-white">{request.user}</span>
+                        <div className="flex space-x-2">
+                          <Button
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700"
+                            onClick={() => handleJoinRequestAction(request.user, true)}
+                          >
+                            Accept
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleJoinRequestAction(request.user, false)}
+                          >
+                            Reject
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          
           <DialogFooter>
-            <Button 
-              variant="secondary" 
+            <Button
+              type="button"
               onClick={() => setMemberManagementDialog(false)}
-              className="bg-gray-800 hover:bg-gray-700 text-white"
+              className="bg-gray-800 text-white hover:bg-gray-700"
             >
               Close
             </Button>

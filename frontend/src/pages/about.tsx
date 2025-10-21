@@ -7,12 +7,10 @@ import React, {useMemo} from "react";
 import { cn } from "@/lib/utils";
 import createGlobe from "cobe";
 import { useEffect, useRef } from "react";
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
 // Images
 const image1 = "/images/image1/10280491.webp";
-const image2 = "/images/image2/6520.webp";
 const image3 = "/images/image3/6316.webp";
 
 
@@ -168,7 +166,7 @@ export function FeaturesSection() {
   );
 }
 
-const FeatureCard = React.memo(({ children, className }) => (
+const FeatureCard = React.memo(({ children, className }: { children?: React.ReactNode, className?: string }) => (
   <div className={cn("p-4 sm:p-8 relative overflow-hidden", className)}>
     {children}
   </div>
