@@ -58,19 +58,32 @@
             const origin = req.headers.origin;
             const frontendURL = origin || process.env.FRONTEND_URL || 'http://localhost:5173';
             
+            console.log("Google auth callback triggered");
+            
             if (err) {
                 console.error("Google authentication error:", err);
-                return res.redirect(`${frontendURL}/login?error=Google%20authentication%20failed`);
+                return res.redirect(`${frontendURL}/login?error=${encodeURIComponent(err.message || 'Google authentication failed')}`);
             }
             
-            if (!data || !data.user || !data.token) {
-                console.error("Google authentication failed - incomplete data");
-                return res.redirect(`${frontendURL}/login?error=Google%20authentication%20failed`);
+            if (!data) {
+                console.error("Google authentication failed - no data returned");
+                return res.redirect(`${frontendURL}/login?error=Authentication%20failed%20-%20no%20data%20returned`);
+            }
+            
+            if (!data.user) {
+                console.error("Google authentication failed - no user data");
+                return res.redirect(`${frontendURL}/login?error=Authentication%20failed%20-%20no%20user%20data`);
+            }
+            
+            if (!data.token) {
+                console.error("Google authentication failed - no token generated");
+                return res.redirect(`${frontendURL}/login?error=Authentication%20failed%20-%20no%20token%20generated`);
             }
             
             const user = data.user;
             const token = data.token;
             
+            console.log(`Redirecting to ${frontendURL}/auth-success with token and user data`);
             return res.redirect(`${frontendURL}/auth-success?token=${token}&email=${user.email}&username=${user.username}`);
             
         })(req, res, next);

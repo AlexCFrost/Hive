@@ -25,6 +25,10 @@ app.use(cors({
   ].filter(Boolean), 
   credentials: true
 }));
+
+// Trust proxy - important for Google OAuth behind Render's proxy
+app.enable('trust proxy');
+
 app.use(passport.initialize());
 
 app.use((req, res, next) => {

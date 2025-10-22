@@ -3,51 +3,6 @@ const UserModel = require("../Model/userModel");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const jwt = require("jsonwebtoken");
 
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: `${process.env.API_URL || 'http://localhost:3000'}/bee/user/auth/google/callback`,
-    },
-    async function (accessToken, refreshToken, profile, done) {
-      try {
-        let email = profile.emails ? profile.emails[0].value : null;
-
-        let user = await UserModel.findOne({ googleId: profile.id });
-
-        if (!user) {
-          user = new UserModel({
-            googleId: profile.id,
-            email: email,
-            userName: profile.displayName,
-          });
-          await user.save();
-        }
-
-        return done(null, user);
-      } catch (err) {
-        return done(err, null);
-      }
-    }
-  )
-);
-
-// Serialize user data into the session
-passport.serializeUser(function (user, done) {
-  done(null, user.id);
-});
-
-// Deserialize user data from the session
-passport.deserializeUser(async function (id, done) {
-  try {
-    const user = await UserModel.findById(id).exec();
-    done(null, user);
-  } catch (err) {
-    done(err, null);
-  }
-});
-
 const createToken = (_id) => {
   return jwt.sign({ _id }, process.env.SECRET, { expiresIn: '3d' });
 };
@@ -58,8 +13,15 @@ passport.use(
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: `${process.env.API_URL || 'http://localhost:3000'}/bee/user/auth/google/callback`,
+      proxy: true
     },
     async function (accessToken, refreshToken, profile, done) {
+      console.log('Google OAuth callback received', { 
+        profileId: profile.id,
+        displayName: profile.displayName,
+        hasEmails: !!profile.emails
+      });
+      
       try {
         let email = profile.emails ? profile.emails[0].value : null;
 
