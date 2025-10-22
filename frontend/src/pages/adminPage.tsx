@@ -33,6 +33,7 @@ interface Member {
 interface JoinRequest {
   user: string;
   createdAt: string;
+  key?: string;
 }
 
 const AdminCommunityManager = () => {
@@ -259,7 +260,10 @@ const AdminCommunityManager = () => {
       }
 
       const requestsData = await requestsResponse.json();
-      setJoinRequests(requestsData);
+      setJoinRequests(requestsData.map((request: JoinRequest, index: number) => ({
+        ...request,
+        key: `join-request-${index}`
+      })));
       
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to load community details';
@@ -408,7 +412,7 @@ const AdminCommunityManager = () => {
                   <CardTitle className="text-white text-xl">{community.name}</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6 flex flex-col h-full">
-                  <p className="text-gray-300 mb-6 flex-grow">
+                  <p className="text-gray-300 mb-6 grow">
                     {community.description || 'No description'}
                   </p>
                   
@@ -468,6 +472,9 @@ const AdminCommunityManager = () => {
             <DialogTitle className="text-white">
               Update the description for {selectedCommunity?.name}
             </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Enter a new description for this community.
+            </DialogDescription>
           </DialogHeader>
           
           <div className="py-4">
@@ -536,6 +543,9 @@ const AdminCommunityManager = () => {
         <DialogContent className="bg-black border border-gray-800 text-white max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-white">Manage {selectedCommunity?.name} Community</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Manage members and handle join requests for this community.
+            </DialogDescription>
           </DialogHeader>
           
           <div className="py-4">
@@ -599,7 +609,7 @@ const AdminCommunityManager = () => {
                   <div className="space-y-3">
                     {joinRequests.map(request => (
                       <div 
-                        key={request.user}
+                        key={request.key || request.user}
                         className="flex items-center justify-between p-3 bg-gray-900 rounded-md"
                       >
                         <span className="text-white">{request.user}</span>

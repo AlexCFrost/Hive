@@ -3,7 +3,7 @@ const socketIO = require('socket.io');
 const socketHandler = (server) => {
   const io = socketIO(server, {
     cors: {
-      origin: ["http://localhost:5173"],
+      origin: [process.env.FRONTEND_URL || "http://localhost:5173"],
       methods: ["GET", "POST"],
       allowedHeaders: ["Authorization"],
       credentials: true
@@ -12,7 +12,6 @@ const socketHandler = (server) => {
 
   io.use((socket, next) => {
     const token = socket.handshake.auth.token;
-    // Add token verification logic here if needed
     next();
   });
 
