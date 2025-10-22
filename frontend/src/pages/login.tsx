@@ -5,6 +5,7 @@ import { Input } from "../components/ui/input";
 import { cn } from "@/lib/utils";
 import { IconBrandGoogle } from "@tabler/icons-react";
 import { useNavigate, Link } from "react-router-dom";
+import { apiEndpoint } from "@/lib/api-config";
 
 export function LoginForm() {
   const [formData, setFormData] = useState({
@@ -26,7 +27,7 @@ export function LoginForm() {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:3000/bee/user/login", {
+      const response = await fetch(apiEndpoint("/bee/user/login"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -50,8 +51,9 @@ export function LoginForm() {
       localStorage.setItem("username", data.username);
 
       navigate("/home");
-    } catch (err: any) {
-      setError(err.message || "An unexpected error occurred");
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
+      setError(errorMessage);
       console.error("Login error:", err);
     } finally {
       setIsLoading(false);
@@ -59,10 +61,9 @@ export function LoginForm() {
   };
 
   const handleGoogleSignIn = () => {
-    window.location.href = "http://localhost:3000/bee/user/auth/google";
+    window.location.href = apiEndpoint("/bee/user/auth/google");
   };
 
-  // Rest of the component remains the same
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
       <div className="shadow-input mx-auto w-full max-w-md rounded-none bg-black p-4 md:rounded-2xl md:p-8 dark:bg-zinc-900">
@@ -124,8 +125,8 @@ export function LoginForm() {
             type="button"
             onClick={handleGoogleSignIn}
           >
-            <IconBrandGoogle className="h-4 w-4 text-white text-neutral-300" />
-            <span className="text-white text-sm text-neutral-300">
+            <IconBrandGoogle className="h-4 w-4 text-white" />
+            <span className="text-white text-sm">
               Log in with Google
             </span>
           </button>

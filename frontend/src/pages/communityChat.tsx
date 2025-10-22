@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { io, Socket } from "socket.io-client";
+import { apiEndpoint, getSocketUrl } from "@/lib/api-config";
 
 interface Community {
   _id: string;
@@ -33,7 +34,7 @@ const CommunityChatComponent: React.FC<CommunityChatComponentProps> = ({
       return;
     }
 
-    const newSocket = io("http://localhost:3000", {
+    const newSocket = io(getSocketUrl(), {
       auth: { token },
     });
     setSocket(newSocket);
@@ -45,7 +46,7 @@ const CommunityChatComponent: React.FC<CommunityChatComponentProps> = ({
     });
 
     // Fetch previous messages
-    fetch(`http://localhost:3000/bee/message/${community._id}`, {
+    fetch(apiEndpoint(`/bee/message/${community._id}`), {
       headers: { 
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json"
@@ -94,7 +95,7 @@ const CommunityChatComponent: React.FC<CommunityChatComponentProps> = ({
     socket?.emit("sendMessage", messageData);
 
     // Send message to backend
-    fetch("http://localhost:3000/bee/message/", {
+    fetch(apiEndpoint("/bee/message/"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

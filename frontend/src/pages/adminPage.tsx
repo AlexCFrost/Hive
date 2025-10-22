@@ -1,3 +1,4 @@
+import { apiEndpoint } from "@/lib/api-config";
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -59,7 +60,7 @@ const AdminCommunityManager = () => {
 
   const navigate = useNavigate();
 
-  // Define filterCommunities first with useCallback
+  // filterCommunities
   const filterCommunities = useCallback(() => {
     if (!adminCommunities.length) return;
     
@@ -73,7 +74,7 @@ const AdminCommunityManager = () => {
     }
 
     setFilteredCommunities(result);
-    setCurrentPage(1); // Reset to first page when filtering
+    setCurrentPage(1); 
   }, [adminCommunities, filterCriteria, searchTerm]);
 
   // Fetch admin communities on mount
@@ -90,7 +91,7 @@ const AdminCommunityManager = () => {
     try {
       const token = localStorage.getItem('token');
       
-      const response = await fetch('http://localhost:3000/bee/community/all', {
+      const response = await fetch(apiEndpoint('/bee/community/all'), {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -140,7 +141,7 @@ const AdminCommunityManager = () => {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/bee/community/${selectedCommunity._id}/description`, {
+      const response = await fetch(apiEndpoint(`/bee/community/${selectedCommunity._id}/description`), {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -176,7 +177,7 @@ const AdminCommunityManager = () => {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/bee/community/${selectedCommunity._id}/delete`, {
+      const response = await fetch(apiEndpoint(`/bee/community/${selectedCommunity._id}/delete`), {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -227,7 +228,7 @@ const AdminCommunityManager = () => {
       const token = localStorage.getItem('token');
       
       // Fetch members
-      const membersResponse = await fetch(`http://localhost:3000/bee/community/${communityId}/members`, {
+      const membersResponse = await fetch(apiEndpoint(`/bee/community/${communityId}/members`), {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -241,12 +242,12 @@ const AdminCommunityManager = () => {
       const membersData = await membersResponse.json();
       setMembers(membersData.map((username: string, index: number) => ({
         username,
-        isAdmin: false, // You might need to fetch admin status separately
+        isAdmin: false, 
         key: `member-${index}`
       })));
 
       // Fetch join requests
-      const requestsResponse = await fetch(`http://localhost:3000/bee/community/${communityId}/requests`, {
+      const requestsResponse = await fetch(apiEndpoint(`/bee/community/${communityId}/requests`), {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -278,7 +279,7 @@ const AdminCommunityManager = () => {
         method = 'DELETE';
         body = JSON.stringify({ username });
         
-        const response = await fetch(`http://localhost:3000/bee/community/${selectedCommunity._id}/members`, {
+        const response = await fetch(apiEndpoint(`/bee/community/${selectedCommunity._id}/members`), {
           method,
           headers: { 
             'Authorization': `Bearer ${token}`,
@@ -311,7 +312,7 @@ const AdminCommunityManager = () => {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/bee/community/${selectedCommunity._id}/requests`, {
+      const response = await fetch(apiEndpoint(`/bee/community/${selectedCommunity._id}/requests`), {
         method: 'PUT',
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -350,8 +351,7 @@ const AdminCommunityManager = () => {
     <div className="flex flex-col w-full">
       <Toaster position="top-right" />
       <h1 className="text-3xl font-bold mb-6 text-white text-center">Community Management</h1>
-      
-      {/* Search and Filter Controls */}
+
       <div className="mb-8 flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 items-center justify-center">
         <div className="flex items-center space-x-2">
           <Select 

@@ -5,6 +5,7 @@ import { Input } from "../components/ui/input";
 import { cn } from "@/lib/utils";
 import { IconBrandGoogle } from "@tabler/icons-react";
 import { useNavigate, Link } from "react-router-dom";
+import { apiEndpoint } from "@/lib/api-config";
 
 export function SignupFormDemo() {
   const [formData, setFormData] = useState({
@@ -29,7 +30,7 @@ export function SignupFormDemo() {
     try {
       const username = `${formData.fullname}`.trim();
 
-      const response = await fetch("http://localhost:3000/bee/user/signup", {
+      const response = await fetch(apiEndpoint("/bee/user/signup"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -55,15 +56,16 @@ export function SignupFormDemo() {
 
       // Redirect to home page
       navigate("/home");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred during signup';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleGoogleSignIn = () => {
-    window.location.href = "http://localhost:3000/bee/user/auth/google";
+    window.location.href = apiEndpoint("/bee/user/auth/google");
   };
 
   return (
@@ -149,8 +151,8 @@ export function SignupFormDemo() {
               type="button"
               onClick={handleGoogleSignIn}
             >
-              <IconBrandGoogle className="h-4 w-4 text-white text-neutral-800 dark:text-neutral-300" />
-              <span className="text-white text-sm text-neutral-700 dark:text-neutral-300">
+              <IconBrandGoogle className="h-4 w-4 text-white dark:text-neutral-300" />
+              <span className="text-white text-sm dark:text-neutral-300">
                 Sign up with Google
               </span>
               <BottomGradient />

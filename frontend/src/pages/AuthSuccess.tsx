@@ -14,7 +14,6 @@ const AuthSuccess = () => {
     const handleAuth = async () => {
       try {
         if (token && email) {
-          // Attempt to set localStorage with error handling
           try {
             localStorage.setItem("token", token);
             localStorage.setItem("email", email);
@@ -23,7 +22,6 @@ const AuthSuccess = () => {
             }
           } catch (storageError) {
             console.error("Error setting localStorage:", storageError);
-            // You could potentially send this error to a logging service
             setAuthStatus('error');
             return;
           }

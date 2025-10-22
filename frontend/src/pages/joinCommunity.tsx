@@ -1,3 +1,4 @@
+import { apiEndpoint } from "@/lib/api-config";
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ const JoinCommunity = () => {
   const fetchCommunities = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/bee/community/all', {
+      const response = await fetch(apiEndpoint('/bee/community/all'), {
         method: 'GET',
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -39,7 +40,7 @@ const JoinCommunity = () => {
 
       const data = await response.json();
 
-      // Filter out communities created or already joined by the user
+      // Filtering out communities created or already joined by the user
       const availableCommunities = data.filter(
         (community: Community) => 
           community.creator !== username && 
@@ -57,7 +58,7 @@ const JoinCommunity = () => {
   const handleJoinRequest = async (communityId: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/bee/community/${communityId}/join`, {
+      const response = await fetch(apiEndpoint(`/bee/community/${communityId}/join`), {
         method: 'POST',
         headers: { 
           'Authorization': `Bearer ${token}`,

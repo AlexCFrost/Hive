@@ -1,3 +1,4 @@
+import { apiEndpoint } from "@/lib/api-config";
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from "@/components/ui/input";
@@ -14,7 +15,7 @@ const CreateCommunity = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Basic validation
+    // validation
     if (!name.trim()) {
       toast.error("Community name is required");
       return;
@@ -22,7 +23,7 @@ const CreateCommunity = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/bee/community', {
+      const response = await fetch(apiEndpoint('/bee/community'), {
         method: 'POST',
         headers: { 
           'Authorization': `Bearer ${token}`,

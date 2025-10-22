@@ -1,3 +1,4 @@
+import { apiEndpoint } from "@/lib/api-config";
 import React, { useEffect, useState } from "react";
 import CommunityChatComponent from "./communityChat";
 import toast, { Toaster } from 'react-hot-toast';
@@ -40,7 +41,7 @@ const CommunityComponent: React.FC = () => {
       return;
     }
 
-    fetch("http://localhost:3000/bee/community/all", {
+    fetch(apiEndpoint("/bee/community/all"), {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -71,7 +72,7 @@ const CommunityComponent: React.FC = () => {
     const token = localStorage.getItem("token");
     toast.loading('Sending join request...', { id: 'join-request' });
     
-    fetch(`http://localhost:3000/bee/community/${communityId}/join`, {
+    fetch(apiEndpoint(`/bee/community/${communityId}/join`), {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -218,7 +219,7 @@ const CommunityComponent: React.FC = () => {
           )}
         </div>
 
-        {/* Community Chat or Details Area - Right Side */}
+        {/* Community Chat - Right Side */}
         <div className="lg:col-span-1 h-[75vh] flex flex-col items-center justify-center">
           {selectedCommunity ? (
             categorizedCommunities.joined.some(comm => comm._id === selectedCommunity._id) || 
