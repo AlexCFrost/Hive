@@ -54,8 +54,9 @@
 
     const googleCallBack = (req, res, next) => {
         passport.authenticate("google", (err, data) => {
-            // Use the FRONTEND_URL environment variable or fallback to localhost
-            const frontendURL = process.env.FRONTEND_URL || 'http://localhost:5173';
+            // Determine the frontend URL from the request origin or environment variable
+            const origin = req.headers.origin;
+            const frontendURL = origin || process.env.FRONTEND_URL || 'http://localhost:5173';
             
             if (err) {
                 console.error("Google authentication error:", err);

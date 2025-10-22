@@ -3,7 +3,12 @@ const socketIO = require('socket.io');
 const socketHandler = (server) => {
   const io = socketIO(server, {
     cors: {
-      origin: [process.env.FRONTEND_URL || "http://localhost:5173"],
+      origin: [
+        "http://localhost:5173",
+        process.env.FRONTEND_URL,
+        "https://hive-c9sq9z8a8-sivaganeshc18-gmailcoms-projects.vercel.app",
+        "https://hive-n6lv.vercel.app"
+      ].filter(Boolean),
       methods: ["GET", "POST"],
       allowedHeaders: ["Authorization"],
       credentials: true

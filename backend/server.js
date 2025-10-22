@@ -17,7 +17,12 @@ const server = http.createServer(app);
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: ["http://localhost:5173", process.env.FRONTEND_URL], 
+  origin: [
+    "http://localhost:5173", 
+    process.env.FRONTEND_URL,
+    "https://hive-c9sq9z8a8-sivaganeshc18-gmailcoms-projects.vercel.app",
+    "https://hive-n6lv.vercel.app"
+  ].filter(Boolean), 
   credentials: true
 }));
 app.use(passport.initialize());
