@@ -17,7 +17,7 @@ const server = http.createServer(app);
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: ["http://localhost:5173"], 
+  origin: ["http://localhost:5173", process.env.FRONTEND_URL], 
   credentials: true
 }));
 app.use(passport.initialize());

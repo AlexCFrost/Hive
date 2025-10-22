@@ -54,20 +54,23 @@
 
     const googleCallBack = (req, res, next) => {
         passport.authenticate("google", (err, data) => {
+            // Use the FRONTEND_URL environment variable or fallback to localhost
+            const frontendURL = process.env.FRONTEND_URL || 'http://localhost:5173';
+            
             if (err) {
                 console.error("Google authentication error:", err);
-                return res.redirect('/login?error=Google%20authentication%20failed');
+                return res.redirect(`${frontendURL}/login?error=Google%20authentication%20failed`);
             }
             
             if (!data || !data.user || !data.token) {
                 console.error("Google authentication failed - incomplete data");
-                return res.redirect('/login?error=Google%20authentication%20failed');
+                return res.redirect(`${frontendURL}/login?error=Google%20authentication%20failed`);
             }
             
             const user = data.user;
             const token = data.token;
             
-            return res.redirect(`http://localhost:5173/auth-success?token=${token}&email=${user.email}&username=${user.username}`);
+            return res.redirect(`${frontendURL}/auth-success?token=${token}&email=${user.email}&username=${user.username}`);
             
         })(req, res, next);
     };
