@@ -5,9 +5,7 @@ const socketHandler = (server) => {
     cors: {
       origin: [
         "http://localhost:5173",
-        process.env.FRONTEND_URL,
-        "https://hive-c9sq9z8a8-sivaganeshc18-gmailcoms-projects.vercel.app",
-        "https://hive-n6lv.vercel.app"
+        process.env.FRONTEND_URL
       ].filter(Boolean),
       methods: ["GET", "POST"],
       allowedHeaders: ["Authorization"],
