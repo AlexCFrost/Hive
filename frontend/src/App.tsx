@@ -11,6 +11,7 @@ import AdminCommunityManager from "./pages/adminPage";
 import AuthSuccess from "./pages/AuthSuccess";
 import { ProtectedLayout } from "./components/shared/Layout";
 
+// Application routes
 function App() {
   return (
     <Routes>
