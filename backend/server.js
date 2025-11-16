@@ -12,6 +12,7 @@ const communityRoutes = require('./Routes/CommunityRoutes');
 const messageRoutes = require('./Routes/messageRoutes');
 const setupSocketHandler = require('./socket/socketHandler');
 
+// Initialize Express app
 const app = express();
 const server = http.createServer(app);
 
@@ -19,7 +20,7 @@ const server = http.createServer(app);
 app.use(express.json());
 app.use(cors({
   origin: [
-    "http://localhost:5173", 
+    "http://localhost:5173",
     process.env.FRONTEND_URL
   ].filter(Boolean), 
   credentials: true
