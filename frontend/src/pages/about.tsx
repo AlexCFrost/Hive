@@ -2,16 +2,8 @@
 "use client";
 import { TypewriterEffect } from "../components/ui/typewriter-effect";
 import { HoverEffect } from "../components/ui/card-hover-effect";
-
-import React, {useMemo} from "react";
-import { cn } from "@/lib/utils";
-import createGlobe from "cobe";
-import { useEffect, useRef } from "react";
+import { ParticleNetwork } from "../components/ui/particle-network";
 import { Link } from "react-router-dom";
-
-// Images
-const image1 = "/images/image1/10280491.webp";
-const image3 = "/images/image3/6316.webp";
 
 
 export function Typewriter() {
@@ -103,191 +95,130 @@ export const about = [
 
 
 export function FeaturesSection() {
-  const features = useMemo(
-    () => [
-      {
-        title: "Track issues effectively",
-        description:
-          "Track and manage your project issues with ease using our intuitive interface.",
-        skeleton: <SkeletonOne />, 
-        className:
-          "col-span-1 lg:col-span-4 border-b lg:border-r dark:border-neutral-800",
-      },
-      {
-        title: "Seamless Communication",
-        description:
-          "Connect with your team and community members effortlessly using our real-time messaging and discussion features.",
-        skeleton: <div className='flex items-center justify-center h-full text-center text-lg font-semibold text-gray-500 dark:text-gray-400'>Chat & Engage</div>, 
-        className: "border-b col-span-1 lg:col-span-2 dark:border-neutral-800",
-      },
-      {
-        title: "Watch our AI on YouTube",
-        description:
-          "Discover how Hive fosters engagement and collaboration in online communities.",
-        skeleton: <SkeletonThree />, 
-        className:
-          "col-span-1 lg:col-span-3 lg:border-r dark:border-neutral-800",
-      },
-      {
-        title: "Deploy in seconds",
-        description:
-          "With our cutting-edge technology, deploying your community space is faster than ever.",
-        skeleton: <SkeletonFour />, 
-        className: "col-span-1 lg:col-span-3 border-b lg:border-none",
-      },
-    ],
-    []
-  );
-
   return (
-    <div className=" bg-black relative z-20 py-10 lg:py-40 max-w-screen mx-auto">
+    <div className="bg-black relative z-20 py-10 max-w-screen mx-auto">
+      {/* Interactive Particle Network */}
       <div className="px-8">
-        <h4 className="text-3xl lg:text-5xl lg:leading-tight max-w-5xl mx-auto text-center tracking-tight font-medium text-white dark:text-white">
-          Hive: Connecting Communities, Sharing News
-        </h4>
-
-        <p className="text-sm lg:text-base max-w-2xl my-4 mx-auto text-neutral-500 text-center font-normal dark:text-neutral-300">
-          The Hive project is an innovative online platform designed to facilitate the creation and sharing of community updates and entertainment news. Users can either create new communities or join existing ones using unique keys.
-        </p>
+        <ParticleNetwork />
       </div>
 
-      <div className="relative">
-        <div className="grid grid-cols-1 lg:grid-cols-6 mt-12 xl:border rounded-md dark:border-neutral-800">
-          {features.map((feature) => (
-            <FeatureCard key={feature.title} className={feature.className}>
-              <FeatureTitle>{feature.title}</FeatureTitle>
-              <FeatureDescription>{feature.description}</FeatureDescription>
-              <div className="h-full w-full">{feature.skeleton}</div>
-            </FeatureCard>
-          ))}
+      {/* Features Grid */}
+      <div className="mt-20 px-8">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Feature 1 */}
+          <div className="group p-6 rounded-lg border border-neutral-800 hover:border-yellow-500 transition-all duration-300">
+            <div className="w-12 h-12 bg-yellow-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-yellow-500/20 transition-colors">
+              <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <h3 className="text-white font-semibold text-xl mb-2">Create Communities</h3>
+            <p className="text-neutral-400 text-sm">
+              Build your own community space with custom settings and invite members to join your growing network.
+            </p>
+          </div>
+
+          {/* Feature 2 */}
+          <div className="group p-6 rounded-lg border border-neutral-800 hover:border-yellow-500 transition-all duration-300">
+            <div className="w-12 h-12 bg-yellow-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-yellow-500/20 transition-colors">
+              <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </div>
+            <h3 className="text-white font-semibold text-xl mb-2">Real-Time Chat</h3>
+            <p className="text-neutral-400 text-sm">
+              Engage in instant conversations with community members through our real-time messaging system.
+            </p>
+          </div>
+
+          {/* Feature 3 */}
+          <div className="group p-6 rounded-lg border border-neutral-800 hover:border-yellow-500 transition-all duration-300">
+            <div className="w-12 h-12 bg-yellow-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-yellow-500/20 transition-colors">
+              <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h3 className="text-white font-semibold text-xl mb-2">Secure Access</h3>
+            <p className="text-neutral-400 text-sm">
+              Join communities securely with unique keys and enjoy safe, authenticated interactions.
+            </p>
+          </div>
+
+          {/* Feature 4 */}
+          <div className="group p-6 rounded-lg border border-neutral-800 hover:border-yellow-500 transition-all duration-300">
+            <div className="w-12 h-12 bg-yellow-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-yellow-500/20 transition-colors">
+              <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+            </div>
+            <h3 className="text-white font-semibold text-xl mb-2">Stay Updated</h3>
+            <p className="text-neutral-400 text-sm">
+              Get instant notifications about community updates, news, and important announcements.
+            </p>
+          </div>
+
+          {/* Feature 5 */}
+          <div className="group p-6 rounded-lg border border-neutral-800 hover:border-yellow-500 transition-all duration-300">
+            <div className="w-12 h-12 bg-yellow-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-yellow-500/20 transition-colors">
+              <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <h3 className="text-white font-semibold text-xl mb-2">Easy Management</h3>
+            <p className="text-neutral-400 text-sm">
+              Manage your communities with intuitive admin tools and member controls all in one place.
+            </p>
+          </div>
+
+          {/* Feature 6 */}
+          <div className="group p-6 rounded-lg border border-neutral-800 hover:border-yellow-500 transition-all duration-300">
+            <div className="w-12 h-12 bg-yellow-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-yellow-500/20 transition-colors">
+              <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h3 className="text-white font-semibold text-xl mb-2">Lightning Fast</h3>
+            <p className="text-neutral-400 text-sm">
+              Experience blazing-fast performance with our optimized platform built on modern technology.
+            </p>
+          </div>
         </div>
       </div>
-    </div>
-  );
-}
 
-const FeatureCard = React.memo(({ children, className }: { children?: React.ReactNode, className?: string }) => (
-  <div className={cn("p-4 sm:p-8 relative overflow-hidden", className)}>
-    {children}
-  </div>
-));
-
-
-const FeatureTitle = ({ children }: { children?: React.ReactNode }) => {
-  return (
-    <p className=" max-w-5xl mx-auto text-left tracking-tight text-white dark:text-white text-xl md:text-2xl md:leading-snug">
-      {children}
-    </p>
-  );
-};
-
-const FeatureDescription = ({ children }: { children?: React.ReactNode }) => {
-  return (
-    <p
-      className={cn(
-        "text-sm md:text-base  max-w-4xl text-left mx-auto",
-        "text-neutral-500 text-center font-normal dark:text-neutral-300",
-        "text-left max-w-sm mx-0 md:text-sm my-2"
-      )}
-    >
-      {children}
-    </p>
-  );
-};
-
-
-export const SkeletonOne = () => {
-  return (
-    <div className="relative flex py-8 px-2 gap-10 h-full">
-      <div className="w-full  p-5  mx-auto bg-white dark:bg-neutral-900 shadow-2xl group h-full">
-        <div className="flex flex-1 w-full h-full flex-col space-y-2  ">
-          {/* TODO */}
-          <img
-            src={image1}
-            alt="header"
-            width={800}
-            height={800}
-            className="h-full w-full aspect-square object-cover object-left-top rounded-sm"
-          />
+      {/* Footer */}
+      <footer className="mt-20 border-t border-neutral-800 pt-10">
+        <div className="max-w-7xl mx-auto px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+              <h3 className="text-white font-semibold text-lg mb-4">Hive</h3>
+              <p className="text-neutral-400 text-sm">
+                Building communities, one connection at a time.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-white font-semibold text-lg mb-4">Quick Links</h3>
+              <ul className="space-y-2">
+                <li><Link to="/about" className="text-neutral-400 hover:text-white text-sm">About</Link></li>
+                <li><Link to="/login" className="text-neutral-400 hover:text-white text-sm">Login</Link></li>
+                <li><Link to="/signup" className="text-neutral-400 hover:text-white text-sm">Sign Up</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-white font-semibold text-lg mb-4">Connect</h3>
+              <p className="text-neutral-400 text-sm">
+                Join our community and stay updated with the latest news.
+              </p>
+            </div>
+          </div>
+          <div className="mt-8 pt-8 border-t border-neutral-800 text-center">
+            <p className="text-neutral-500 text-sm">
+              © {new Date().getFullYear()} Hive. All rights reserved.
+            </p>
+          </div>
         </div>
-      </div>
-
-      <div className="absolute bottom-0 z-40 inset-x-0 h-60 bg-gradient-to-t from-white dark:from-black via-white dark:via-black to-transparent w-full pointer-events-none" />
-      <div className="absolute top-0 z-40 inset-x-0 h-60 bg-gradient-to-b from-white dark:from-black via-transparent to-transparent w-full pointer-events-none" />
+      </footer>
     </div>
-  );
-};
-
-export const SkeletonThree = () => {
-  return (
-      <div className="w-full  mx-auto bg-transparent dark:bg-transparent group h-full">
-        <div className="flex flex-1 w-full h-full flex-col space-y-2  relative">
-          {/* TODO */}
-          <img
-            src={image3}
-            alt="header"
-            width={800}
-            height={800}
-            className="h-full w-full aspect-square object-cover object-center rounded-sm blur-none"
-          />
-        </div>
-      </div>
-  );
-};
-
-export const SkeletonFour = () => {
-  return (
-    <div className="h-60 md:h-60  flex flex-col items-center relative bg-transparent dark:bg-transparent mt-10">
-      <Globe className="absolute -right-10 md:-right-10 -bottom-80 md:-bottom-72" />
-    </div>
-  );
-};
-
-export const Globe = ({ className }: { className?: string }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    let phi = 0;
-
-    if (!canvasRef.current) return;
-
-    const globe = createGlobe(canvasRef.current, {
-      devicePixelRatio: 2,
-      width: 600 * 2,
-      height: 600 * 2,
-      phi: 0,
-      theta: 0,
-      dark: 1,
-      diffuse: 1.2,
-      mapSamples: 16000,
-      mapBrightness: 6,
-      baseColor: [0.3, 0.3, 0.3],
-      markerColor: [0.1, 0.8, 1],
-      glowColor: [1, 1, 1],
-      markers: [
-        // longitude latitude
-        { location: [37.7595, -122.4367], size: 0.03 },
-        { location: [40.7128, -74.006], size: 0.1 },
-      ],
-      onRender: (state) => {
-        // Called on every animation frame.
-        // `state` will be an empty object, return updated params.
-        state.phi = phi;
-        phi += 0.01;
-      },
-    });
-
-    return () => {
-      globe.destroy();
-    };
-  }, []);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      style={{ width: 600, height: 600, maxWidth: "100%", aspectRatio: 1 }}
-      className={className}
-    />
   );
 };
 
