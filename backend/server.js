@@ -6,6 +6,7 @@ const passport = require("passport");
 const http = require('http');
 const socketIo = require('socket.io');
 
+// Routes
 const userRoutes = require("./Routes/userRoutes");
 const communityRoutes = require('./Routes/CommunityRoutes');
 const messageRoutes = require('./Routes/messageRoutes');
